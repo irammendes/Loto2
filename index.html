@@ -70,6 +70,9 @@
         .number-ball.extreme {
             background-color: #c0392b;
         }
+        .number-ball.not-drawn-last {
+            background-color: #d35400;
+        }
         .game-controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -153,6 +156,9 @@
         }
         .not-drawn-number {
             background-color: #f39c12;
+        }
+        .not-drawn-last-number {
+            background-color: #d35400;
         }
         .prime-number {
             background-color: #16a085;
@@ -278,6 +284,75 @@
             color: #555;
             margin-top: 5px;
         }
+        .game-report {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+            border-left: 3px solid #3498db;
+        }
+        .report-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .report-item {
+            margin: 3px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .report-good {
+            color: #27ae60;
+        }
+        .report-bad {
+            color: #e74c3c;
+        }
+        .report-neutral {
+            color: #f39c12;
+        }
+        .report-strategy {
+            font-weight: 500;
+        }
+        .report-details {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #555;
+        }
+        .strategy-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .tag-balanced {
+            background-color: #d5f5e3;
+            color: #27ae60;
+        }
+        .tag-primes {
+            background-color: #d1f2eb;
+            color: #16a085;
+        }
+        .tag-extremes {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+        .tag-unique {
+            background-color: #eaf2f8;
+            color: #2980b9;
+        }
+        .rating-stars {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .cycle-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -293,6 +368,7 @@
                 <li><strong>Dobrar premiação</strong> - Gera jogos com 16-17 números para múltiplos acertos</li>
                 <li><strong>Atenção às bolas 1 e 15</strong> - Foco nos números extremos dos sorteios</li>
                 <li><strong>Números primos</strong> - Prioriza números primos (2,3,5,7,11,13,17,19,23)</li>
+                <li><strong>Ciclo de dezenas não sorteadas</strong> - Identifica números que não apareceram nos últimos concursos</li>
             </ul>
             <button id="load-results">Atualizar Dados <span id="loading-spinner" class="loading" style="display: none;"></span></button>
             <div id="api-status" style="margin-top: 12px; font-style: italic; color: #555;"></div>
@@ -344,6 +420,10 @@
                     <input type="checkbox" id="watch-extremes" checked>
                     <label for="watch-extremes">Atentar para números extremos (bolas 1 e 15)</label>
                 </div>
+                <div>
+                    <input type="checkbox" id="use-not-drawn-cycle" checked>
+                    <label for="use-not-drawn-cycle">Usar ciclo de dezenas não sorteadas</label>
+                </div>
             </div>
             
             <div class="game-controls">
@@ -366,6 +446,7 @@
                         <button id="generate-games" class="secondary">Gerar Jogos Inteligentes</button>
                         <button id="generate-cold" class="tertiary">Focar em Números Atrasados</button>
                         <button id="generate-not-drawn" class="tertiary">Usar Números Não Sorteados</button>
+                        <button id="generate-not-drawn-cycle" class="tertiary">Usar Ciclo de Não Sorteados</button>
                         <button id="generate-balanced">Jogo Balanceado</button>
                     </div>
                     
@@ -386,8 +467,13 @@
                     <div id="cold-numbers"></div>
                 </div>
                 <div class="number-group">
-                    <div class="number-group-title">Números Não Sorteados</div>
+                    <div class="number-group-title">Números Não Sorteados (últimos 5)</div>
                     <div id="not-drawn-numbers"></div>
+                </div>
+                <div class="number-group">
+                    <div class="number-group-title">Números Não Sorteados (último sorteio)</div>
+                    <div id="not-drawn-last-numbers"></div>
+                    <div id="cycle-info" class="cycle-info"></div>
                 </div>
                 <div class="number-group">
                     <div class="number-group-title">Números Primos</div>
@@ -408,10 +494,12 @@
         // Dados globais
         let frequencyData = {};
         let notDrawnNumbers = [];
+        let notDrawnLastNumbers = [];
         let lastDraws = [];
         let numberStats = {};
         let fixedNumbers = [];
         let excludedNumbers = [];
+        let notDrawnCycleInfo = {};
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
@@ -446,6 +534,7 @@
             document.getElementById('generate-games').addEventListener('click', generateGames);
             document.getElementById('generate-cold').addEventListener('click', generateColdGames);
             document.getElementById('generate-not-drawn').addEventListener('click', generateNotDrawnGames);
+            document.getElementById('generate-not-drawn-cycle').addEventListener('click', generateNotDrawnCycleGames);
             document.getElementById('generate-balanced').addEventListener('click', generateBalancedGames);
             document.getElementById('clear-selections').addEventListener('click', clearSelections);
             document.getElementById('save-games').addEventListener('click', saveGames);
@@ -475,6 +564,8 @@
                     lastDraws: lastDraws,
                     frequencyData: frequencyData,
                     notDrawnNumbers: notDrawnNumbers,
+                    notDrawnLastNumbers: notDrawnLastNumbers,
+                    notDrawnCycleInfo: notDrawnCycleInfo,
                     numberStats: numberStats,
                     timestamp: new Date().toISOString()
                 };
@@ -503,6 +594,8 @@
                         lastDraws: lastDraws,
                         frequencyData: frequencyData,
                         notDrawnNumbers: notDrawnNumbers,
+                        notDrawnLastNumbers: notDrawnLastNumbers,
+                        notDrawnCycleInfo: notDrawnCycleInfo,
                         numberStats: numberStats,
                         timestamp: new Date().toISOString()
                     };
@@ -630,6 +723,85 @@
                     notDrawnNumbers.push(i);
                 }
             }
+            
+            // Identifica números não sorteados no último concurso
+            notDrawnLastNumbers = [];
+            const lastDrawNumbers = lastDraws[0].dezenas;
+            for (let i = 1; i <= 25; i++) {
+                if (!lastDrawNumbers.includes(i)) {
+                    notDrawnLastNumbers.push(i);
+                }
+            }
+            
+            // Calcula ciclos de números não sorteados nos últimos 10 concursos
+            calculateNotDrawnCycles();
+        }
+
+        // Calcula ciclos de números não sorteados nos últimos 10 concursos
+        function calculateNotDrawnCycles() {
+            notDrawnCycleInfo = {};
+            
+            // Verifica se todos os números foram sorteados nos últimos 10 concursos
+            const allNumbersDrawn = new Set();
+            lastDraws.forEach(draw => {
+                draw.dezenas.forEach(num => allNumbersDrawn.add(num));
+            });
+            
+            const allNumbersWereDrawn = allNumbersDrawn.size === 25;
+            
+            if (allNumbersWereDrawn) {
+                // Se todos os números foram sorteados, reinicia o ciclo
+                notDrawnCycleInfo.cycleActive = true;
+                notDrawnCycleInfo.cycleStart = lastDraws[0].numero;
+                notDrawnCycleInfo.numbersNotDrawnInCycle = [];
+                
+                // Verifica quais números não foram sorteados no último concurso
+                notDrawnCycleInfo.numbersNotDrawnInCycle = notDrawnLastNumbers;
+            } else {
+                // Se não, continua o ciclo atual
+                notDrawnCycleInfo.cycleActive = false;
+                notDrawnCycleInfo.numbersNotDrawnInCycle = [];
+                
+                // Identifica números que não foram sorteados nos últimos 10 concursos
+                for (let i = 1; i <= 25; i++) {
+                    let wasDrawn = false;
+                    for (let j = 0; j < lastDraws.length; j++) {
+                        if (lastDraws[j].dezenas.includes(i)) {
+                            wasDrawn = true;
+                            break;
+                        }
+                    }
+                    if (!wasDrawn) {
+                        notDrawnCycleInfo.numbersNotDrawnInCycle.push(i);
+                    }
+                }
+            }
+            
+            // Atualiza a exibição do ciclo
+            updateCycleInfoDisplay();
+        }
+
+        // Atualiza a exibição das informações do ciclo
+        function updateCycleInfoDisplay() {
+            const cycleInfoElement = document.getElementById('cycle-info');
+            
+            if (notDrawnCycleInfo.cycleActive) {
+                cycleInfoElement.innerHTML = `
+                    <strong>Ciclo Ativo:</strong> Todos os números foram sorteados nos últimos 10 concursos.<br>
+                    <strong>Números não sorteados no último concurso:</strong> ${notDrawnCycleInfo.numbersNotDrawnInCycle.join(', ')}<br>
+                    <strong>Quantidade:</strong> ${notDrawnCycleInfo.numbersNotDrawnInCycle.length} números
+                `;
+            } else if (notDrawnCycleInfo.numbersNotDrawnInCycle.length > 0) {
+                cycleInfoElement.innerHTML = `
+                    <strong>Ciclo Incompleto:</strong> Alguns números não foram sorteados nos últimos 10 concursos.<br>
+                    <strong>Números atrasados:</strong> ${notDrawnCycleInfo.numbersNotDrawnInCycle.join(', ')}<br>
+                    <strong>Quantidade:</strong> ${notDrawnCycleInfo.numbersNotDrawnInCycle.length} números
+                `;
+            } else {
+                cycleInfoElement.innerHTML = `
+                    <strong>Status do Ciclo:</strong> Aguardando todos os números serem sorteados nos últimos 10 concursos.
+                `;
+            }
         }
 
         // Atualiza a exibição dos sorteios
@@ -724,6 +896,7 @@
             const recentContainer = document.getElementById('recent-numbers');
             const coldContainer = document.getElementById('cold-numbers');
             const notDrawnContainer = document.getElementById('not-drawn-numbers');
+            const notDrawnLastContainer = document.getElementById('not-drawn-last-numbers');
             const primeContainer = document.getElementById('prime-numbers');
             
             fixedContainer.innerHTML = '';
@@ -731,6 +904,7 @@
             recentContainer.innerHTML = '';
             coldContainer.innerHTML = '';
             notDrawnContainer.innerHTML = '';
+            notDrawnLastContainer.innerHTML = '';
             primeContainer.innerHTML = '';
             
             // Cria todas as bolas de 1 a 25
@@ -764,10 +938,16 @@
                 coldContainer.appendChild(ball);
             });
             
-            // Agrupa números não sorteados
+            // Agrupa números não sorteados nos últimos 5 concursos
             notDrawnNumbers.forEach(num => {
                 const ball = createNumberBall(num, 'not-drawn');
                 notDrawnContainer.appendChild(ball);
+            });
+            
+            // Agrupa números não sorteados no último concurso
+            notDrawnLastNumbers.forEach(num => {
+                const ball = createNumberBall(num, 'not-drawn-last');
+                notDrawnLastContainer.appendChild(ball);
             });
             
             // Agrupa números primos
@@ -795,13 +975,15 @@
                 ball.classList.add('cold');
             } else if (type === 'not-drawn') {
                 ball.classList.add('not-drawn');
+            } else if (type === 'not-drawn-last') {
+                ball.classList.add('not-drawn-last');
             } else if (type === 'prime') {
                 ball.classList.add('prime');
             }
             
             // Configura o clique
             ball.addEventListener('click', () => {
-                if (type === 'fixed' || type === 'recent' || type === 'cold' || type === 'not-drawn' || type === 'prime') {
+                if (type === 'fixed' || type === 'recent' || type === 'cold' || type === 'not-drawn' || type === 'not-drawn-last' || type === 'prime') {
                     toggleFixedNumber(number);
                 } else if (type === 'excluded') {
                     toggleExcludedNumber(number);
@@ -920,6 +1102,127 @@
             );
         }
 
+        // Verifica se o jogo usa números do ciclo não sorteados
+        function usesNotDrawnCycleNumbers(numbers) {
+            if (!document.getElementById('use-not-drawn-cycle').checked) return true;
+            if (!notDrawnCycleInfo.cycleActive) return true;
+            
+            // Verifica se pelo menos 2 números não sorteados no último concurso estão no jogo
+            const intersection = numbers.filter(num => notDrawnCycleInfo.numbersNotDrawnInCycle.includes(num));
+            return intersection.length >= 2;
+        }
+
+        // Gera relatório detalhado do jogo
+        function generateGameReport(numbers) {
+            const sorted = [...numbers].sort((a, b) => a - b);
+            const firstExtreme = sorted[0];
+            const lastExtreme = sorted[sorted.length - 1];
+            
+            const evens = numbers.filter(n => n % 2 === 0).length;
+            const odds = numbers.length - evens;
+            const primes = numbers.filter(n => PRIME_NUMBERS.includes(n)).length;
+            const primesList = numbers.filter(n => PRIME_NUMBERS.includes(n)).join(', ');
+            
+            const isBalanced = isBalancedParity(numbers);
+            const hasGoodPrimes = hasGoodPrimeCount(numbers);
+            const hasGoodExtremesValue = hasGoodExtremes(numbers);
+            const isRepeated = isRepeatedCombination(numbers);
+            const isDoublePremium = numbers.length > 15;
+            const usesCycleNumbers = usesNotDrawnCycleNumbers(numbers);
+            
+            // Calcula score de qualidade
+            let score = 0;
+            if (isBalanced) score += 20;
+            if (hasGoodPrimes) score += 20;
+            if (hasGoodExtremesValue) score += 15;
+            if (!isRepeated) score += 25;
+            if (usesCycleNumbers) score += 20;
+            
+            // Classificação
+            let rating = "";
+            let stars = "";
+            if (score >= 90) {
+                rating = "Excelente";
+                stars = "★★★★★";
+            } else if (score >= 75) {
+                rating = "Muito Bom";
+                stars = "★★★★";
+            } else if (score >= 60) {
+                rating = "Bom";
+                stars = "★★★";
+            } else if (score >= 40) {
+                rating = "Regular";
+                stars = "★★";
+            } else {
+                rating = "Básico";
+                stars = "★";
+            }
+            
+            // Cria o relatório
+            const report = document.createElement('div');
+            report.className = 'game-report';
+            
+            report.innerHTML = `
+                <div class="report-title">Relatório de Estratégia</div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Classificação:</span>
+                    <strong>${rating} <span class="rating-stars">${stars}</span></strong>
+                </div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Tipo:</span>
+                    <span>${isDoublePremium ? 'Jogo Premium (' + numbers.length + ' números)' : 'Jogo Padrão (15 números)'}</span>
+                </div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Pares/Ímpares:</span>
+                    <span class="${isBalanced ? 'report-good' : 'report-bad'}">
+                        ${evens} pares | ${odds} ímpares
+                        ${isBalanced ? '(Balanceado)' : '(Desequilibrado)'}
+                    </span>
+                </div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Números Primos:</span>
+                    <span class="${hasGoodPrimes ? 'report-good' : 'report-bad'}">
+                        ${primes} primos (${primesList}) ${hasGoodPrimes ? '(Ótimo)' : '(Fora da faixa ideal)'}
+                    </span>
+                </div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Extremos (${firstExtreme} e ${lastExtreme}):</span>
+                    <span class="${hasGoodExtremesValue ? 'report-good' : 'report-neutral'}">
+                        ${hasGoodExtremesValue ? 'Bons números' : 'Pode melhorar'}
+                    </span>
+                </div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Combinação única:</span>
+                    <span class="${!isRepeated ? 'report-good' : 'report-bad'}">
+                        ${!isRepeated ? 'Nunca sorteada' : 'Já sorteada antes'}
+                    </span>
+                </div>
+                
+                <div class="report-item">
+                    <span class="report-strategy">Ciclo de não sorteados:</span>
+                    <span class="${usesCycleNumbers ? 'report-good' : 'report-neutral'}">
+                        ${usesCycleNumbers ? 'Usa números do ciclo' : 'Não usa números do ciclo'}
+                    </span>
+                </div>
+                
+                <div class="report-details">
+                    <div><span class="strategy-tag tag-balanced">Balanceado</span> ${isBalanced ? '✔' : '✖'} Diferença de ${Math.abs(evens - odds)} entre pares/ímpares</div>
+                    <div><span class="strategy-tag tag-primes">Primos</span> ${hasGoodPrimes ? '✔' : '✖'} ${primes} números primos (ideal 5-7)</div>
+                    <div><span class="strategy-tag tag-extremes">Extremos</span> ${hasGoodExtremesValue ? '✔' : '✖'} ${firstExtreme} (freq. ${frequencyData[firstExtreme]}) e ${lastExtreme} (freq. ${frequencyData[lastExtreme]})</div>
+                    <div><span class="strategy-tag tag-unique">Único</span> ${!isRepeated ? '✔' : '✖'} Combinação ${!isRepeated ? 'nunca sorteada' : 'já apareceu antes'}</div>
+                    <div><span class="strategy-tag">Ciclo</span> ${usesCycleNumbers ? '✔' : '✖'} ${usesCycleNumbers ? 'Usa ' + numbers.filter(n => notDrawnCycleInfo.numbersNotDrawnInCycle.includes(n)).length + ' números do ciclo' : 'Não usa números do ciclo'}</div>
+                </div>
+            `;
+            
+            return report;
+        }
+
         // Gera jogos com números atrasados
         function generateColdGames() {
             const coldNumbers = Object.keys(frequencyData)
@@ -961,6 +1264,30 @@
             generateGames();
         }
 
+        // Gera jogos com números do ciclo não sorteados
+        function generateNotDrawnCycleGames() {
+            if (!notDrawnCycleInfo.cycleActive || notDrawnCycleInfo.numbersNotDrawnInCycle.length === 0) {
+                alert('O ciclo de números não sorteados não está ativo ou não há números disponíveis!');
+                return;
+            }
+            
+            const availableCycleNumbers = notDrawnCycleInfo.numbersNotDrawnInCycle.filter(num => !excludedNumbers.includes(num));
+            
+            if (availableCycleNumbers.length === 0) {
+                alert('Todos os números do ciclo foram excluídos!');
+                return;
+            }
+            
+            // Seleciona 3-5 números do ciclo
+            const cycleToUse = availableCycleNumbers
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.min(availableCycleNumbers.length, Math.floor(Math.random() * 3) + 3));
+            
+            fixedNumbers = [...new Set([...fixedNumbers, ...cycleToUse])];
+            initializeNumbers();
+            generateGames();
+        }
+
         // Gera jogos balanceados
         function generateBalancedGames() {
             const hotNumbers = Object.keys(frequencyData)
@@ -972,7 +1299,7 @@
                 .filter(num => frequencyData[num] <= 3)
                 .map(Number)
                 .filter(num => !excludedNumbers.includes(num));
-            
+                
             // 8-10 números quentes
             const hotToUse = hotNumbers
                 .sort(() => Math.random() - 0.5)
@@ -1009,14 +1336,15 @@
                     attempts++;
                     
                     if (attempts >= MAX_ATTEMPTS) {
-                        alert('Não foi possível gerar jogos com os critérios atuais após ' + MAX_ATTEMPTS + ' tentativas!');
+                        alert('Não foi possível gerar jogos com os critérios atuais após ' + MAX_ATTEMPTS + ' tentativas!\n\nSugestão: Relaxe alguns filtros ou reduza a quantidade de números fixos.');
                         return;
                     }
                 } while (
                     (document.getElementById('avoid-repeated').checked && isRepeatedCombination(numbers)) ||
                     (document.getElementById('balance-parity').checked && !isBalancedParity(numbers)) ||
                     (document.getElementById('use-primes').checked && !hasGoodPrimeCount(numbers)) ||
-                    (document.getElementById('watch-extremes').checked && !hasGoodExtremes(numbers))
+                    (document.getElementById('watch-extremes').checked && !hasGoodExtremes(numbers)) ||
+                    (document.getElementById('use-not-drawn-cycle').checked && !usesNotDrawnCycleNumbers(numbers))
                 );
 
                 displayGame(numbers, i + 1);
@@ -1040,14 +1368,15 @@
                     attempts++;
                     
                     if (attempts >= MAX_ATTEMPTS) {
-                        alert('Não foi possível gerar jogos com os critérios atuais após ' + MAX_ATTEMPTS + ' tentativas!');
+                        alert('Não foi possível gerar jogos premium com os critérios atuais após ' + MAX_ATTEMPTS + ' tentativas!\n\nSugestão: Relaxe alguns filtros ou reduza a quantidade de números fixos.');
                         return;
                     }
                 } while (
                     (document.getElementById('avoid-repeated').checked && isRepeatedCombination(numbers)) ||
                     (document.getElementById('balance-parity').checked && !isBalancedParity(numbers)) ||
                     (document.getElementById('use-primes').checked && !hasGoodPrimeCount(numbers)) ||
-                    (document.getElementById('watch-extremes').checked && !hasGoodExtremes(numbers))
+                    (document.getElementById('watch-extremes').checked && !hasGoodExtremes(numbers)) ||
+                    (document.getElementById('use-not-drawn-cycle').checked && !usesNotDrawnCycleNumbers(numbers))
                 );
 
                 displayGame(numbers, i + 1);
@@ -1079,6 +1408,7 @@
                 
                 if (fixedNumbers.includes(num)) numElement.classList.add('fixed-number');
                 if (notDrawnNumbers.includes(num)) numElement.classList.add('not-drawn-number');
+                if (notDrawnLastNumbers.includes(num)) numElement.classList.add('not-drawn-last-number');
                 if (PRIME_NUMBERS.includes(num)) numElement.classList.add('prime-number');
                 if (num === firstExtreme || num === lastExtreme) numElement.classList.add('extreme-number');
                 
@@ -1086,23 +1416,10 @@
                 numbersElement.appendChild(numElement);
             });
             
-            // Adiciona informações estatísticas
-            const statsElement = document.createElement('div');
-            statsElement.style.marginTop = '8px';
-            statsElement.style.fontSize = '13px';
-            statsElement.style.color = '#555';
-            
-            const evens = numbers.filter(n => n % 2 === 0).length;
-            const odds = numbers.length - evens;
-            const primes = numbers.filter(n => PRIME_NUMBERS.includes(n)).length;
-            
-            statsElement.innerHTML = `
-                <div>Pares: ${evens} | Ímpares: ${odds}</div>
-                <div>Primos: ${primes} | Extremos: ${firstExtreme} e ${lastExtreme}</div>
-            `;
-            
             gameElement.appendChild(numbersElement);
-            gameElement.appendChild(statsElement);
+            
+            // Adiciona o relatório detalhado
+            gameElement.appendChild(generateGameReport(numbers));
             container.appendChild(gameElement);
         }
 
@@ -1140,7 +1457,8 @@
                     balanceParity: document.getElementById('balance-parity').checked,
                     usePrimes: document.getElementById('use-primes').checked,
                     doublePremium: document.getElementById('double-premium').checked,
-                    watchExtremes: document.getElementById('watch-extremes').checked
+                    watchExtremes: document.getElementById('watch-extremes').checked,
+                    useNotDrawnCycle: document.getElementById('use-not-drawn-cycle').checked
                 }
             }));
             
@@ -1159,6 +1477,12 @@
             };
             
             notDrawnNumbers = [16, 18, 21, 23];
+            notDrawnLastNumbers = [3, 7, 16, 22, 25];
+            notDrawnCycleInfo = {
+                cycleActive: true,
+                cycleStart: 2500,
+                numbersNotDrawnInCycle: [3, 7, 16, 22, 25]
+            };
             
             // Simula sorteios
             lastDraws = [];
