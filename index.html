@@ -3,95 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisador Lotofácil Avançado com Gerador de Jogos</title>
+    <title>Gerador Inteligente Lotofácil - Estratégias Avançadas</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f0f2f5;
             color: #333;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
         h1, h2, h3 {
             color: #2c3e50;
+            margin-top: 0;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #3498db;
-            color: white;
-        }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-        .highlight {
-            background-color: #f9e79f;
+        h1 {
+            color: #1a5276;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
         }
         .number-ball {
             display: inline-block;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background-color: #e74c3c;
             color: white;
             text-align: center;
-            line-height: 30px;
-            margin: 2px;
+            line-height: 32px;
+            margin: 3px;
             font-weight: bold;
             cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .number-ball:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
         }
         .number-ball.recent {
-            background-color: #2ecc71;
+            background-color: #27ae60;
         }
         .number-ball.cold {
-            background-color: #3498db;
+            background-color: #2980b9;
         }
         .number-ball.fixed {
-            background-color: #9b59b6;
+            background-color: #8e44ad;
         }
         .number-ball.excluded {
-            background-color: #95a5a6;
+            background-color: #7f8c8d;
             text-decoration: line-through;
         }
         .number-ball.not-drawn {
             background-color: #f39c12;
         }
+        .number-ball.prime {
+            background-color: #16a085;
+        }
+        .number-ball.extreme {
+            background-color: #c0392b;
+        }
         .game-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
         }
         .control-group {
-            flex: 1;
-            min-width: 200px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .strategy-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
         }
         button {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
+            padding: 12px 18px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 16px;
-            margin: 5px 0;
+            font-weight: 500;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #2980b9;
@@ -99,146 +105,204 @@
         button.secondary {
             background-color: #2ecc71;
         }
+        button.secondary:hover {
+            background-color: #27ae60;
+        }
         button.tertiary {
             background-color: #f39c12;
         }
+        button.tertiary:hover {
+            background-color: #e67e22;
+        }
         .generated-games {
-            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
         }
         .game {
-            display: inline-block;
-            margin: 10px;
-            padding: 10px;
             background-color: #f8f9fa;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         .game-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            color: #2c3e50;
         }
         .game-numbers {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
         }
         .game-number {
             display: inline-block;
-            width: 25px;
-            height: 25px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background-color: #e74c3c;
             color: white;
             text-align: center;
-            line-height: 25px;
-            font-size: 12px;
+            line-height: 28px;
+            font-size: 13px;
+            font-weight: bold;
         }
         .fixed-number {
-            background-color: #9b59b6;
+            background-color: #8e44ad;
         }
         .not-drawn-number {
             background-color: #f39c12;
         }
+        .prime-number {
+            background-color: #16a085;
+        }
+        .extreme-number {
+            background-color: #c0392b;
+        }
         .info-section {
             background-color: #eaf2f8;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .strategy-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 15px 0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 5px solid #3498db;
         }
         .number-groups {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 15px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
         }
         .number-group {
-            flex: 1;
-            min-width: 150px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
         }
         .number-group-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
         }
         .loading {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(0,0,0,.3);
+            border: 3px solid rgba(0,0,0,.1);
             border-radius: 50%;
             border-top-color: #3498db;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
             margin-left: 10px;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         .last-draws {
-            margin-top: 20px;
+            margin-top: 30px;
         }
         .draw {
-            margin-bottom: 15px;
-            padding: 10px;
             background-color: #f8f9fa;
-            border-radius: 5px;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
         .draw-title {
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            color: #2c3e50;
         }
         .draw-numbers {
             display: flex;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
         }
         .draw-number {
             display: inline-block;
-            width: 25px;
-            height: 25px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             background-color: #e74c3c;
             color: white;
             text-align: center;
-            line-height: 25px;
-            font-size: 12px;
+            line-height: 28px;
+            font-size: 13px;
         }
         .stats-table {
             width: 100%;
-            margin: 20px 0;
+            border-collapse: collapse;
+            margin: 25px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .stats-table th, .stats-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
         }
         .stats-table th {
             background-color: #2c3e50;
+            color: white;
+        }
+        .stats-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .strategy-options {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .strategy-options h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .strategy-options div {
+            margin: 12px 0;
+        }
+        .strategy-options input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .strategy-options label {
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .highlight {
+            background-color: #fffde7;
+        }
+        .prime-explanation {
+            font-size: 14px;
+            color: #555;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Analisador Lotofácil Avançado com Gerador de Jogos</h1>
+        <h1>Gerador Inteligente de Jogos Lotofácil</h1>
         
         <div class="info-section">
-            <h2>Informações Importantes</h2>
-            <p>A Lotofácil é uma loteria onde você escolhe 15 números entre 25. Ganha premiação quem acertar 11, 12, 13, 14 ou 15 números.</p>
-            <p><strong>Probabilidades de acerto:</strong></p>
+            <h2>Estratégias Avançadas</h2>
+            <p>Este gerador utiliza técnicas estatísticas para aumentar suas chances na Lotofácil:</p>
             <ul>
-                <li>15 acertos: 1 em 3.268.760</li>
-                <li>14 acertos: 1 em 21.791</li>
-                <li>13 acertos: 1 em 691</li>
-                <li>12 acertos: 1 em 59</li>
-                <li>11 acertos: 1 em 11</li>
+                <li><strong>Evitar combinações já sorteadas</strong> - Elimina jogos que já foram premiados</li>
+                <li><strong>Balancear pares/ímpares</strong> - Proporção ideal de 7-8 ou 8-7</li>
+                <li><strong>Dobrar premiação</strong> - Gera jogos com 16-17 números para múltiplos acertos</li>
+                <li><strong>Atenção às bolas 1 e 15</strong> - Foco nos números extremos dos sorteios</li>
+                <li><strong>Números primos</strong> - Prioriza números primos (2,3,5,7,11,13,17,19,23)</li>
             </ul>
-            <button id="load-results">Carregar Últimos Resultados <span id="loading-spinner" class="loading" style="display: none;"></span></button>
-            <div id="api-status" style="margin-top: 10px; font-style: italic;"></div>
+            <button id="load-results">Atualizar Dados <span id="loading-spinner" class="loading" style="display: none;"></span></button>
+            <div id="api-status" style="margin-top: 12px; font-style: italic; color: #555;"></div>
         </div>
         
         <div id="last-results" class="last-draws" style="display: none;">
             <h2>Últimos 10 Sorteios</h2>
             <div id="draws-container"></div>
             
-            <h2>Estatísticas dos Números</h2>
+            <h2>Estatísticas Detalhadas</h2>
             <table class="stats-table">
                 <thead>
                     <tr>
@@ -246,6 +310,7 @@
                         <th>Frequência</th>
                         <th>Último Sorteio</th>
                         <th>Atraso</th>
+                        <th>Tipo</th>
                     </tr>
                 </thead>
                 <tbody id="stats-body">
@@ -254,33 +319,60 @@
         </div>
         
         <div class="analysis-section">
-            <h2>Gerador de Jogos Inteligentes</h2>
+            <h2>Configurações do Gerador</h2>
+            
+            <div class="strategy-options">
+                <h3>Estratégias Avançadas</h3>
+                <div>
+                    <input type="checkbox" id="avoid-repeated" checked>
+                    <label for="avoid-repeated">Evitar combinações já sorteadas</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="balance-parity" checked>
+                    <label for="balance-parity">Balancear pares e ímpares (7-8 ou 8-7)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="use-primes" checked>
+                    <label for="use-primes">Usar números primos (2,3,5,7,11,13,17,19,23)</label>
+                    <div class="prime-explanation">Números primos aparecem em ~70% dos sorteios</div>
+                </div>
+                <div>
+                    <input type="checkbox" id="double-premium">
+                    <label for="double-premium">Dobrar premiação (gerar com 16-17 números)</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="watch-extremes" checked>
+                    <label for="watch-extremes">Atentar para números extremos (bolas 1 e 15)</label>
+                </div>
+            </div>
             
             <div class="game-controls">
                 <div class="control-group">
-                    <h3>Selecione Números Fixos (Máx. 15)</h3>
+                    <h3>Números Fixos (Máx. 15)</h3>
                     <div id="fixed-numbers-container"></div>
                 </div>
                 
                 <div class="control-group">
-                    <h3>Selecione Números para Excluir</h3>
+                    <h3>Números para Excluir</h3>
                     <div id="excluded-numbers-container"></div>
                 </div>
                 
                 <div class="control-group">
                     <h3>Opções de Geração</h3>
                     <label for="game-count">Quantidade de jogos:</label>
-                    <input type="number" id="game-count" min="1" max="20" value="5">
+                    <input type="number" id="game-count" min="1" max="20" value="5" style="padding: 8px; width: 60px;">
                     
                     <div class="strategy-buttons">
-                        <button id="generate-games" class="secondary">Gerar Jogos Aleatórios</button>
-                        <button id="generate-cold" class="tertiary">Gerar com Números Atrasados</button>
-                        <button id="generate-not-drawn" class="tertiary">Gerar com Números Não Sorteados</button>
-                        <button id="generate-balanced">Gerar Jogos Balanceados</button>
+                        <button id="generate-games" class="secondary">Gerar Jogos Inteligentes</button>
+                        <button id="generate-cold" class="tertiary">Focar em Números Atrasados</button>
+                        <button id="generate-not-drawn" class="tertiary">Usar Números Não Sorteados</button>
+                        <button id="generate-balanced">Jogo Balanceado</button>
                     </div>
                     
-                    <button id="clear-selections">Limpar Seleções</button>
-                    <button id="save-games">Salvar Jogos</button>
+                    <div style="margin-top: 15px;">
+                        <button id="clear-selections">Limpar Seleções</button>
+                        <button id="save-games" style="margin-left: 10px;">Salvar Jogos</button>
+                    </div>
                 </div>
             </div>
             
@@ -297,13 +389,22 @@
                     <div class="number-group-title">Números Não Sorteados</div>
                     <div id="not-drawn-numbers"></div>
                 </div>
+                <div class="number-group">
+                    <div class="number-group-title">Números Primos</div>
+                    <div id="prime-numbers"></div>
+                </div>
             </div>
             
+            <h2>Jogos Gerados</h2>
             <div id="generated-games" class="generated-games"></div>
         </div>
     </div>
 
     <script>
+        // Constantes e configurações
+        const PRIME_NUMBERS = [2, 3, 5, 7, 11, 13, 17, 19, 23];
+        const MAX_ATTEMPTS = 500;
+        
         // Dados globais
         let frequencyData = {};
         let notDrawnNumbers = [];
@@ -314,18 +415,33 @@
         
         // Inicialização
         document.addEventListener('DOMContentLoaded', () => {
-            // Carrega dados salvos localmente se existirem
+            // Carrega dados salvos localmente
             const savedData = localStorage.getItem('lotofacilData');
             if (savedData) {
-                const parsedData = JSON.parse(savedData);
-                if (parsedData.lastDraws && parsedData.lastDraws.length > 0) {
-                    processResults(parsedData);
-                    document.getElementById('api-status').textContent = 'Dados carregados do cache local';
-                    document.getElementById('last-results').style.display = 'block';
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    if (parsedData.lastDraws?.length > 0) {
+                        processResults(parsedData);
+                        document.getElementById('api-status').textContent = 
+                            `Dados carregados do cache (${new Date(parsedData.timestamp).toLocaleString()})`;
+                        document.getElementById('last-results').style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error("Erro ao carregar dados salvos:", e);
                 }
             }
             
             // Configura event listeners
+            setupEventListeners();
+            
+            // Se não há dados, carrega fallback
+            if (lastDraws.length === 0) {
+                loadFallbackData();
+            }
+        });
+
+        // Configura os listeners de eventos
+        function setupEventListeners() {
             document.getElementById('load-results').addEventListener('click', loadResults);
             document.getElementById('generate-games').addEventListener('click', generateGames);
             document.getElementById('generate-cold').addEventListener('click', generateColdGames);
@@ -333,7 +449,7 @@
             document.getElementById('generate-balanced').addEventListener('click', generateBalancedGames);
             document.getElementById('clear-selections').addEventListener('click', clearSelections);
             document.getElementById('save-games').addEventListener('click', saveGames);
-        });
+        }
 
         // Carrega resultados da API
         async function loadResults() {
@@ -346,13 +462,10 @@
                 loadResultsBtn.disabled = true;
                 apiStatus.textContent = 'Conectando à API...';
                 
-                // Usando proxy CORS
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const apiUrl = encodeURIComponent('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil');
+                // Tentativa com API alternativa primeiro
+                const response = await fetch('https://loteriascaixa-api.herokuapp.com/api/lotofacil');
                 
-                const response = await fetch(proxyUrl + apiUrl);
-                
-                if (!response.ok) throw new Error('Erro na API');
+                if (!response.ok) throw new Error('API alternativa falhou');
                 
                 const data = await response.json();
                 processResults(data);
@@ -371,16 +484,45 @@
                 apiStatus.textContent = 'Dados atualizados em ' + new Date().toLocaleString();
                 
             } catch (error) {
-                console.error('Erro:', error);
-                apiStatus.textContent = 'Erro ao carregar dados. Usando cache local.';
+                console.error('Erro com API alternativa:', error);
                 
-                // Tenta usar dados salvos
-                const savedData = localStorage.getItem('lotofacilData');
-                if (savedData) {
-                    processResults(JSON.parse(savedData));
+                // Tenta com proxy CORS como fallback
+                try {
+                    apiStatus.textContent = 'Tentando conexão alternativa...';
+                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                    const apiUrl = encodeURIComponent('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil');
+                    const proxyResponse = await fetch(proxyUrl + apiUrl);
+                    
+                    if (!proxyResponse.ok) throw new Error('Erro no proxy CORS');
+                    
+                    const proxyData = await proxyResponse.json();
+                    processResults(proxyData);
+                    
+                    // Salva localmente
+                    const saveData = {
+                        lastDraws: lastDraws,
+                        frequencyData: frequencyData,
+                        notDrawnNumbers: notDrawnNumbers,
+                        numberStats: numberStats,
+                        timestamp: new Date().toISOString()
+                    };
+                    localStorage.setItem('lotofacilData', JSON.stringify(saveData));
+                    
                     document.getElementById('last-results').style.display = 'block';
-                } else {
-                    loadFallbackData();
+                    apiStatus.textContent = 'Dados atualizados via proxy em ' + new Date().toLocaleString();
+                    
+                } catch (proxyError) {
+                    console.error('Erro com proxy CORS:', proxyError);
+                    apiStatus.textContent = 'Erro ao carregar dados. Usando cache local.';
+                    
+                    // Tenta usar dados salvos
+                    const savedData = localStorage.getItem('lotofacilData');
+                    if (savedData) {
+                        processResults(JSON.parse(savedData));
+                        document.getElementById('last-results').style.display = 'block';
+                    } else {
+                        loadFallbackData();
+                    }
                 }
             } finally {
                 loadingSpinner.style.display = 'none';
@@ -405,11 +547,12 @@
         // Simula concursos anteriores (para demonstração)
         function simulateLastDraws(lastDraw) {
             const draws = [];
-            const baseNumbers = lastDraw.listaDezenas.map(Number);
+            const baseNumbers = lastDraw.listaDezenas?.map(Number) || 
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
             
             for (let i = 0; i < 10; i++) {
                 draws.push({
-                    numero: lastDraw.numero - i,
+                    numero: (lastDraw.numero || 2500) - i,
                     data: new Date(Date.now() - i * 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
                     dezenas: generateSimilarDraw(baseNumbers)
                 });
@@ -445,7 +588,8 @@
                 frequencyData[i] = 0;
                 numberStats[i] = {
                     lastDraw: 0,
-                    delay: 10
+                    delay: 10,
+                    isPrime: PRIME_NUMBERS.includes(i)
                 };
             }
             
@@ -508,6 +652,16 @@
                 draw.dezenas.forEach(num => {
                     const numElement = document.createElement('div');
                     numElement.className = 'draw-number';
+                    
+                    // Destaca números extremos
+                    if (num === Math.min(...draw.dezenas) || num === Math.max(...draw.dezenas)) {
+                        numElement.style.backgroundColor = '#c0392b';
+                    } 
+                    // Destaca números primos
+                    else if (PRIME_NUMBERS.includes(num)) {
+                        numElement.style.backgroundColor = '#16a085';
+                    }
+                    
                     numElement.textContent = num;
                     numbersElement.appendChild(numElement);
                 });
@@ -525,8 +679,16 @@
             for (let num = 1; num <= 25; num++) {
                 const row = document.createElement('tr');
                 
+                // Destaca linhas com base nas características
+                if (numberStats[num].isPrime) {
+                    row.classList.add('highlight');
+                }
+                
                 const numCell = document.createElement('td');
                 numCell.textContent = num;
+                if (numberStats[num].isPrime) {
+                    numCell.innerHTML += ' <span style="color:#16a085;">●</span>';
+                }
                 row.appendChild(numCell);
                 
                 const freqCell = document.createElement('td');
@@ -541,6 +703,16 @@
                 delayCell.textContent = numberStats[num].delay;
                 row.appendChild(delayCell);
                 
+                const typeCell = document.createElement('td');
+                let typeText = '';
+                if (numberStats[num].isPrime) typeText += 'Primo, ';
+                if (frequencyData[num] >= 8) typeText += 'Quente';
+                else if (frequencyData[num] <= 3) typeText += 'Frio';
+                else typeText += 'Normal';
+                
+                typeCell.textContent = typeText;
+                row.appendChild(typeCell);
+                
                 tbody.appendChild(row);
             }
         }
@@ -552,12 +724,14 @@
             const recentContainer = document.getElementById('recent-numbers');
             const coldContainer = document.getElementById('cold-numbers');
             const notDrawnContainer = document.getElementById('not-drawn-numbers');
+            const primeContainer = document.getElementById('prime-numbers');
             
             fixedContainer.innerHTML = '';
             excludedContainer.innerHTML = '';
             recentContainer.innerHTML = '';
             coldContainer.innerHTML = '';
             notDrawnContainer.innerHTML = '';
+            primeContainer.innerHTML = '';
             
             // Cria todas as bolas de 1 a 25
             for (let i = 1; i <= 25; i++) {
@@ -595,6 +769,12 @@
                 const ball = createNumberBall(num, 'not-drawn');
                 notDrawnContainer.appendChild(ball);
             });
+            
+            // Agrupa números primos
+            PRIME_NUMBERS.forEach(num => {
+                const ball = createNumberBall(num, 'prime');
+                primeContainer.appendChild(ball);
+            });
         }
 
         // Cria uma bola de número interativa
@@ -615,11 +795,13 @@
                 ball.classList.add('cold');
             } else if (type === 'not-drawn') {
                 ball.classList.add('not-drawn');
+            } else if (type === 'prime') {
+                ball.classList.add('prime');
             }
             
             // Configura o clique
             ball.addEventListener('click', () => {
-                if (type === 'fixed' || type === 'recent' || type === 'cold' || type === 'not-drawn') {
+                if (type === 'fixed' || type === 'recent' || type === 'cold' || type === 'not-drawn' || type === 'prime') {
                     toggleFixedNumber(number);
                 } else if (type === 'excluded') {
                     toggleExcludedNumber(number);
@@ -674,7 +856,7 @@
             initializeNumbers();
         }
 
-        // Gera números aleatórios
+        // Gera números aleatórios com estratégias
         function generateRandomNumbers(count, exclude = []) {
             const available = [];
             for (let i = 1; i <= 25; i++) {
@@ -691,6 +873,51 @@
             // Embaralha os números disponíveis
             const shuffled = [...available].sort(() => Math.random() - 0.5);
             return shuffled.slice(0, count).sort((a, b) => a - b);
+        }
+
+        // Verifica se uma combinação já foi sorteada
+        function isRepeatedCombination(numbers) {
+            return lastDraws.some(draw => {
+                const drawNumbers = draw.dezenas.map(Number);
+                return arraysEqual(numbers.sort(), drawNumbers.sort());
+            });
+        }
+
+        // Compara arrays
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+
+        // Verifica balanceamento par/ímpar
+        function isBalancedParity(numbers) {
+            const evens = numbers.filter(n => n % 2 === 0).length;
+            const odds = numbers.length - evens;
+            return Math.abs(evens - odds) <= 1; // Diferença de no máximo 1
+        }
+
+        // Verifica números primos
+        function hasGoodPrimeCount(numbers) {
+            const primes = numbers.filter(n => PRIME_NUMBERS.includes(n)).length;
+            return primes >= 5 && primes <= 7; // Entre 5 e 7 primos
+        }
+
+        // Verifica números extremos
+        function hasGoodExtremes(numbers) {
+            const sorted = [...numbers].sort((a, b) => a - b);
+            const first = sorted[0];
+            const last = sorted[sorted.length - 1];
+            
+            // Pelo menos um dos extremos deve ser quente ou primo
+            return (
+                frequencyData[first] >= 7 || 
+                frequencyData[last] >= 7 || 
+                PRIME_NUMBERS.includes(first) || 
+                PRIME_NUMBERS.includes(last)
+            );
         }
 
         // Gera jogos com números atrasados
@@ -761,30 +988,69 @@
             generateGames();
         }
 
-        // Gera os jogos
+        // Gera jogos com todas as estratégias
         function generateGames() {
+            if (document.getElementById('double-premium').checked) {
+                generateDoublePremiumGames();
+                return;
+            }
+
             const gameCount = parseInt(document.getElementById('game-count').value) || 5;
             const gamesContainer = document.getElementById('generated-games');
-            
             gamesContainer.innerHTML = '';
-            
-            if (fixedNumbers.length > 15) {
-                alert('Você selecionou mais de 15 números fixos!');
-                return;
-            }
-            
-            const neededNumbers = 15 - fixedNumbers.length;
-            if (neededNumbers < 0) {
-                alert('Selecione no máximo 15 números fixos!');
-                return;
-            }
-            
+
             for (let i = 0; i < gameCount; i++) {
-                const randomNumbers = generateRandomNumbers(neededNumbers, fixedNumbers);
-                if (randomNumbers.length === 0) return;
+                let numbers;
+                let attempts = 0;
                 
-                const gameNumbers = [...fixedNumbers, ...randomNumbers].sort((a, b) => a - b);
-                displayGame(gameNumbers, i + 1);
+                do {
+                    numbers = generateRandomNumbers(15 - fixedNumbers.length, [...fixedNumbers, ...excludedNumbers]);
+                    numbers = [...fixedNumbers, ...numbers].sort((a, b) => a - b);
+                    attempts++;
+                    
+                    if (attempts >= MAX_ATTEMPTS) {
+                        alert('Não foi possível gerar jogos com os critérios atuais após ' + MAX_ATTEMPTS + ' tentativas!');
+                        return;
+                    }
+                } while (
+                    (document.getElementById('avoid-repeated').checked && isRepeatedCombination(numbers)) ||
+                    (document.getElementById('balance-parity').checked && !isBalancedParity(numbers)) ||
+                    (document.getElementById('use-primes').checked && !hasGoodPrimeCount(numbers)) ||
+                    (document.getElementById('watch-extremes').checked && !hasGoodExtremes(numbers))
+                );
+
+                displayGame(numbers, i + 1);
+            }
+        }
+
+        // Gera jogos para dobrar premiação (16-17 números)
+        function generateDoublePremiumGames() {
+            const gameCount = parseInt(document.getElementById('game-count').value) || 5;
+            const gamesContainer = document.getElementById('generated-games');
+            gamesContainer.innerHTML = '';
+
+            for (let i = 0; i < gameCount; i++) {
+                let numbers;
+                let attempts = 0;
+                const count = Math.random() > 0.5 ? 16 : 17;
+                
+                do {
+                    numbers = generateRandomNumbers(count - fixedNumbers.length, [...fixedNumbers, ...excludedNumbers]);
+                    numbers = [...fixedNumbers, ...numbers].sort((a, b) => a - b);
+                    attempts++;
+                    
+                    if (attempts >= MAX_ATTEMPTS) {
+                        alert('Não foi possível gerar jogos com os critérios atuais após ' + MAX_ATTEMPTS + ' tentativas!');
+                        return;
+                    }
+                } while (
+                    (document.getElementById('avoid-repeated').checked && isRepeatedCombination(numbers)) ||
+                    (document.getElementById('balance-parity').checked && !isBalancedParity(numbers)) ||
+                    (document.getElementById('use-primes').checked && !hasGoodPrimeCount(numbers)) ||
+                    (document.getElementById('watch-extremes').checked && !hasGoodExtremes(numbers))
+                );
+
+                displayGame(numbers, i + 1);
             }
         }
 
@@ -796,11 +1062,16 @@
             
             const titleElement = document.createElement('div');
             titleElement.className = 'game-title';
-            titleElement.textContent = `Jogo ${gameNumber}`;
+            titleElement.textContent = `Jogo ${gameNumber} (${numbers.length} números)`;
             gameElement.appendChild(titleElement);
             
             const numbersElement = document.createElement('div');
             numbersElement.className = 'game-numbers';
+            
+            // Ordena os números para identificar extremos
+            const sortedNumbers = [...numbers].sort((a, b) => a - b);
+            const firstExtreme = sortedNumbers[0];
+            const lastExtreme = sortedNumbers[sortedNumbers.length - 1];
             
             numbers.forEach(num => {
                 const numElement = document.createElement('div');
@@ -808,12 +1079,30 @@
                 
                 if (fixedNumbers.includes(num)) numElement.classList.add('fixed-number');
                 if (notDrawnNumbers.includes(num)) numElement.classList.add('not-drawn-number');
+                if (PRIME_NUMBERS.includes(num)) numElement.classList.add('prime-number');
+                if (num === firstExtreme || num === lastExtreme) numElement.classList.add('extreme-number');
                 
                 numElement.textContent = num;
                 numbersElement.appendChild(numElement);
             });
             
+            // Adiciona informações estatísticas
+            const statsElement = document.createElement('div');
+            statsElement.style.marginTop = '8px';
+            statsElement.style.fontSize = '13px';
+            statsElement.style.color = '#555';
+            
+            const evens = numbers.filter(n => n % 2 === 0).length;
+            const odds = numbers.length - evens;
+            const primes = numbers.filter(n => PRIME_NUMBERS.includes(n)).length;
+            
+            statsElement.innerHTML = `
+                <div>Pares: ${evens} | Ímpares: ${odds}</div>
+                <div>Primos: ${primes} | Extremos: ${firstExtreme} e ${lastExtreme}</div>
+            `;
+            
             gameElement.appendChild(numbersElement);
+            gameElement.appendChild(statsElement);
             container.appendChild(gameElement);
         }
 
@@ -843,8 +1132,19 @@
                 return;
             }
             
-            localStorage.setItem('savedGames', JSON.stringify(games));
-            alert(`${games.length} jogos salvos com sucesso!`);
+            localStorage.setItem('savedGames', JSON.stringify({
+                games: games,
+                timestamp: new Date().toISOString(),
+                strategies: {
+                    avoidRepeated: document.getElementById('avoid-repeated').checked,
+                    balanceParity: document.getElementById('balance-parity').checked,
+                    usePrimes: document.getElementById('use-primes').checked,
+                    doublePremium: document.getElementById('double-premium').checked,
+                    watchExtremes: document.getElementById('watch-extremes').checked
+                }
+            }));
+            
+            alert(`${games.length} jogos salvos com sucesso!\n\nVocê pode fechar a página e os jogos permanecerão salvos.`);
         }
 
         // Carrega dados de fallback
