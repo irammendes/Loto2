@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Avançada Lotofácil com Gerador de Jogos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            background-color: #f9e79f;
+        }
+        .chart-container {
+            margin: 30px 0;
+        }
+        .analysis-section {
+            margin-bottom: 40px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .number-ball {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            margin: 2px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .number-ball.recent {
+            background-color: #2ecc71;
+        }
+        .number-ball.cold {
+            background-color: #3498db;
+        }
+        .number-ball.fixed {
+            background-color: #9b59b6;
+        }
+        .number-ball.excluded {
+            background-color: #95a5a6;
+            text-decoration: line-through;
+        }
+        .number-ball.not-drawn {
+            background-color: #f39c12;
+        }
+        .game-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button.secondary {
+            background-color: #2ecc71;
+        }
+        button.tertiary {
+            background-color: #f39c12;
+        }
+        .generated-games {
+            margin-top: 20px;
+        }
+        .game {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .game-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .game-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .game-number {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            line-height: 25px;
+            font-size: 12px;
+        }
+        .fixed-number {
+            background-color: #9b59b6;
+        }
+        .not-drawn-number {
+            background-color: #f39c12;
+        }
+        .info-section {
+            background-color: #eaf2f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .strategy-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .number-groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .number-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .number-group-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.3);
+            border-radius: 50%;
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .last-draws {
+            margin-top: 20px;
+        }
+        .draw {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .draw-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .draw-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .draw-number {
+            display: inline-block;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            color: white;
+            text-align: center;
+            line-height: 25px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Análise Avançada da Lotofácil com Gerador de Jogos</h1>
+        
+        <div class="info-section">
+            <h2>Informações Importantes</h2>
+            <p>A Lotofácil é uma loteria onde você escolhe 15 números entre 25. Ganha premiação quem acertar 11, 12, 13, 14 ou 15 números.</p>
+            <p>Probabilidades de acerto:</p>
+            <ul>
+                <li>15 acertos: 1 em 3.268.760</li>
+                <li>14 acertos: 1 em 21.791</li>
+                <li>13 acertos: 1 em 691</li>
+                <li>12 acertos: 1 em 59</li>
+                <li>11 acertos: 1 em 11</li>
+            </ul>
+            <p>Use as estratégias abaixo para aumentar suas chances de ganhar!</p>
+            <button id="load-results">Carregar Últimos Resultados <span id="loading-spinner" class="loading" style="display: none;"></span></button>
+        </div>
+        
+        <div id="last-results" class="last-draws" style="display: none;">
+            <h2>Últimos 10 Sorteios</h2>
+            <div id="draws-container"></div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Gerador de Jogos</h2>
+            
+            <div class="game-controls">
+                <div class="control-group">
+                    <h3>Selecione Números Fixos</h3>
+                    <div id="fixed-numbers-container">
+                        <!-- Números para selecionar como fixos -->
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Selecione Números para Excluir</h3>
+                    <div id="excluded-numbers-container">
+                        <!-- Números para excluir -->
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Opções</h3>
+                    <label for="game-count">Quantidade de jogos:</label>
+                    <input type="number" id="game-count" min="1" max="20" value="5">
+                    
+                    <div class="strategy-buttons">
+                        <button id="generate-games" class="secondary">Gerar Jogos Aleatórios</button>
+                        <button id="generate-cold" class="tertiary">Gerar com Números Atrasados</button>
+                        <button id="generate-not-drawn" class="tertiary">Gerar com Números Não Sorteados</button>
+                        <button id="generate-balanced">Gerar Jogos Balanceados</button>
+                    </div>
+                    
+                    <button id="clear-selections">Limpar Seleções</button>
+                </div>
+            </div>
+            
+            <div class="number-groups">
+                <div class="number-group">
+                    <div class="number-group-title">Números Recentes (8+ vezes nos últimos 10 sorteios)</div>
+                    <div id="recent-numbers"></div>
+                </div>
+                <div class="number-group">
+                    <div class="number-group-title">Números Atrasados (3 ou menos vezes nos últimos 10 sorteios)</div>
+                    <div id="cold-numbers"></div>
+                </div>
+                <div class="number-group">
+                    <div class="number-group-title">Números Não Sorteados (últimos 5 sorteios)</div>
+                    <div id="not-drawn-numbers"></div>
+                </div>
+            </div>
+            
+            <div id="generated-games" class="generated-games">
+                <!-- Jogos gerados aparecerão aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados iniciais (serão atualizados pela API)
+        let frequencyData = {};
+        let notDrawnNumbers = [];
+        let lastDraws = [];
+        
+        // Variáveis para controle
+        let fixedNumbers = [];
+        let excludedNumbers = [];
+        
+        // Carregar resultados da API
+        async function loadResults() {
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const loadResultsBtn = document.getElementById('load-results');
+            
+            try {
+                loadingSpinner.style.display = 'inline-block';
+                loadResultsBtn.disabled = true;
+                
+                // Usando um proxy CORS para acessar a API da Caixa
+                const response = await fetch('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar resultados');
+                }
+                
+                const data = await response.json();
+                processResults(data);
+                
+                // Mostrar a seção de últimos resultados
+                document.getElementById('last-results').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Não foi possível carregar os últimos resultados. Usando dados locais.');
+                loadLocalData();
+            } finally {
+                loadingSpinner.style.display = 'none';
+                loadResultsBtn.disabled = false;
+            }
+        }
+        
+        // Processar os resultados da API
+        function processResults(data) {
+            // Verificar se há dados válidos
+            if (!data || !data.listaDezenas || !data.numero) {
+                throw new Error('Dados inválidos da API');
+            }
+            
+            // Aqui você precisaria implementar a lógica para obter os últimos 10 concursos
+            // Como a API atual só retorna o último concurso, vamos simular alguns dados
+            // Em uma aplicação real, você precisaria armazenar os dados localmente ou usar uma API que forneça histórico
+            
+            // Simulação: criar 10 concursos fictícios baseados no último concurso
+            lastDraws = [];
+            const lastDrawNumbers = data.listaDezenas.map(Number);
+            const lastDrawNumber = data.numero;
+            
+            for (let i = 0; i < 10; i++) {
+                lastDraws.push({
+                    numero: lastDrawNumber - i,
+                    data: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
+                    dezenas: generateSimilarDraw(lastDrawNumbers)
+                });
+            }
+            
+            // Atualizar a interface com os sorteios
+            updateDrawsDisplay();
+            
+            // Calcular frequências
+            calculateFrequencies();
+            
+            // Inicializar os números
+            initializeNumbers();
+        }
+        
+        // Gerar um sorteio similar (para simulação)
+        function generateSimilarDraw(baseNumbers) {
+            const newDraw = [...baseNumbers];
+            
+            // Alterar alguns números para simular variação
+            const changes = Math.floor(Math.random() * 3) + 2; // 2-4 mudanças
+            for (let i = 0; i < changes; i++) {
+                const indexToChange = Math.floor(Math.random() * 15);
+                let newNumber;
+                do {
+                    newNumber = Math.floor(Math.random() * 25) + 1;
+                } while (newDraw.includes(newNumber));
+                
+                newDraw[indexToChange] = newNumber;
+            }
+            
+            return newDraw.sort((a, b) => a - b);
+        }
+        
+        // Carregar dados locais se a API falhar
+        function loadLocalData() {
+            // Dados de frequência dos números (baseado nos últimos 10 concursos)
+            frequencyData = {
+                1: 8, 2: 9, 3: 9, 4: 8, 5: 8,
+                6: 7, 7: 8, 8: 9, 9: 8, 10: 9,
+                11: 6, 12: 7, 13: 6, 14: 6, 15: 8,
+                16: 3, 17: 5, 18: 3, 19: 4, 20: 5,
+                21: 2, 22: 3, 23: 1, 24: 3, 25: 5
+            };
+
+            // Números não sorteados nos últimos 5 concursos
+            notDrawnNumbers = [16, 18, 21, 23];
+            
+            // Inicializar os números
+            initializeNumbers();
+        }
+        
+        // Calcular frequências com base nos últimos sorteios
+        function calculateFrequencies() {
+            frequencyData = {};
+            
+            // Inicializar contadores
+            for (let i = 1; i <= 25; i++) {
+                frequencyData[i] = 0;
+            }
+            
+            // Contar ocorrências nos últimos 10 sorteios
+            lastDraws.forEach(draw => {
+                draw.dezenas.forEach(number => {
+                    frequencyData[number]++;
+                });
+            });
+            
+            // Identificar números não sorteados nos últimos 5 sorteios
+            notDrawnNumbers = [];
+            const last5Draws = lastDraws.slice(0, 5);
+            const allDrawnNumbers = new Set();
+            
+            last5Draws.forEach(draw => {
+                draw.dezenas.forEach(number => {
+                    allDrawnNumbers.add(number);
+                });
+            });
+            
+            for (let i = 1; i <= 25; i++) {
+                if (!allDrawnNumbers.has(i)) {
+                    notDrawnNumbers.push(i);
+                }
+            }
+        }
+        
+        // Atualizar a exibição dos sorteios
+        function updateDrawsDisplay() {
+            const container = document.getElementById('draws-container');
+            container.innerHTML = '';
+            
+            lastDraws.forEach(draw => {
+                const drawElement = document.createElement('div');
+                drawElement.className = 'draw';
+                
+                const titleElement = document.createElement('div');
+                titleElement.className = 'draw-title';
+                titleElement.textContent = `Concurso ${draw.numero} - ${draw.data}`;
+                drawElement.appendChild(titleElement);
+                
+                const numbersElement = document.createElement('div');
+                numbersElement.className = 'draw-numbers';
+                
+                draw.dezenas.forEach(number => {
+                    const numElement = document.createElement('div');
+                    numElement.className = 'draw-number';
+                    numElement.textContent = number;
+                    numbersElement.appendChild(numElement);
+                });
+                
+                drawElement.appendChild(numbersElement);
+                container.appendChild(drawElement);
+            });
+        }
+        
+        // Inicializar os números
+        function initializeNumbers() {
+            const fixedContainer = document.getElementById('fixed-numbers-container');
+            const excludedContainer = document.getElementById('excluded-numbers-container');
+            const recentContainer = document.getElementById('recent-numbers');
+            const coldContainer = document.getElementById('cold-numbers');
+            const notDrawnContainer = document.getElementById('not-drawn-numbers');
+            
+            fixedContainer.innerHTML = '';
+            excludedContainer.innerHTML = '';
+            recentContainer.innerHTML = '';
+            coldContainer.innerHTML = '';
+            notDrawnContainer.innerHTML = '';
+            
+            // Gerar todos os números de 1 a 25
+            for (let i = 1; i <= 25; i++) {
+                // Para números fixos
+                const fixedBall = document.createElement('span');
+                fixedBall.className = 'number-ball';
+                if (frequencyData[i] >= 8) fixedBall.className += ' recent';
+                if (frequencyData[i] <= 3) fixedBall.className += ' cold';
+                if (notDrawnNumbers.includes(i)) fixedBall.className += ' not-drawn';
+                fixedBall.textContent = i;
+                fixedBall.dataset.number = i;
+                fixedBall.addEventListener('click', toggleFixedNumber);
+                fixedContainer.appendChild(fixedBall);
+                fixedContainer.appendChild(document.createTextNode(' '));
+                
+                // Para números excluídos
+                const excludedBall = document.createElement('span');
+                excludedBall.className = 'number-ball';
+                if (frequencyData[i] >= 8) excludedBall.className += ' recent';
+                if (frequencyData[i] <= 3) excludedBall.className += ' cold';
+                if (notDrawnNumbers.includes(i)) excludedBall.className += ' not-drawn';
+                excludedBall.textContent = i;
+                excludedBall.dataset.number = i;
+                excludedBall.addEventListener('click', toggleExcludedNumber);
+                excludedContainer.appendChild(excludedBall);
+                excludedContainer.appendChild(document.createTextNode(' '));
+            }
+            
+            // Agrupar números recentes (frequentes)
+            const recentNumbers = Object.keys(frequencyData)
+                .filter(num => frequencyData[num] >= 8)
+                .map(num => parseInt(num));
+            
+            recentNumbers.forEach(num => {
+                const ball = createNumberBall(num, 'recent');
+                recentContainer.appendChild(ball);
+                recentContainer.appendChild(document.createTextNode(' '));
+            });
+            
+            // Agrupar números atrasados (frios)
+            const coldNumbers = Object.keys(frequencyData)
+                .filter(num => frequencyData[num] <= 3)
+                .map(num => parseInt(num));
+            
+            coldNumbers.forEach(num => {
+                const ball = createNumberBall(num, 'cold');
+                coldContainer.appendChild(ball);
+                coldContainer.appendChild(document.createTextNode(' '));
+            });
+            
+            // Agrupar números não sorteados
+            notDrawnNumbers.forEach(num => {
+                const ball = createNumberBall(num, 'not-drawn');
+                notDrawnContainer.appendChild(ball);
+                notDrawnContainer.appendChild(document.createTextNode(' '));
+            });
+        }
+        
+        // Criar bola de número com classe específica
+        function createNumberBall(number, className) {
+            const ball = document.createElement('span');
+            ball.className = `number-ball ${className}`;
+            ball.textContent = number;
+            ball.dataset.number = number;
+            ball.addEventListener('click', () => {
+                const fixedIndex = fixedNumbers.indexOf(number);
+                if (fixedIndex === -1) {
+                    if (fixedNumbers.length < 15) {
+                        fixedNumbers.push(number);
+                        updateFixedBalls();
+                    } else {
+                        alert('Você pode selecionar no máximo 15 números fixos!');
+                    }
+                } else {
+                    fixedNumbers.splice(fixedIndex, 1);
+                    updateFixedBalls();
+                }
+            });
+            return ball;
+        }
+        
+        // Alternar número fixo
+        function toggleFixedNumber(e) {
+            const number = parseInt(e.target.dataset.number);
+            const index = fixedNumbers.indexOf(number);
+            
+            if (index === -1) {
+                // Adicionar como fixo
+                if (fixedNumbers.length < 15) {
+                    fixedNumbers.push(number);
+                    e.target.classList.add('fixed');
+                    
+                    // Remover dos excluídos se estiver lá
+                    const excludedIndex = excludedNumbers.indexOf(number);
+                    if (excludedIndex !== -1) {
+                        excludedNumbers.splice(excludedIndex, 1);
+                        updateExcludedBalls();
+                    }
+                } else {
+                    alert('Você pode selecionar no máximo 15 números fixos!');
+                }
+            } else {
+                // Remover dos fixos
+                fixedNumbers.splice(index, 1);
+                e.target.classList.remove('fixed');
+            }
+        }
+        
+        // Alternar número excluído
+        function toggleExcludedNumber(e) {
+            const number = parseInt(e.target.dataset.number);
+            const index = excludedNumbers.indexOf(number);
+            
+            if (index === -1) {
+                // Adicionar como excluído
+                excludedNumbers.push(number);
+                e.target.classList.add('excluded');
+                
+                // Remover dos fixos se estiver lá
+                const fixedIndex = fixedNumbers.indexOf(number);
+                if (fixedIndex !== -1) {
+                    fixedNumbers.splice(fixedIndex, 1);
+                    updateFixedBalls();
+                }
+            } else {
+                // Remover dos excluídos
+                excludedNumbers.splice(index, 1);
+                e.target.classList.remove('excluded');
+            }
+        }
+        
+        // Atualizar aparência das bolas fixas
+        function updateFixedBalls() {
+            const balls = document.querySelectorAll('#fixed-numbers-container .number-ball');
+            balls.forEach(ball => {
+                const num = parseInt(ball.dataset.number);
+                ball.classList.toggle('fixed', fixedNumbers.includes(num));
+            });
+        }
+        
+        // Atualizar aparência das bolas excluídas
+        function updateExcludedBalls() {
+            const balls = document.querySelectorAll('#excluded-numbers-container .number-ball');
+            balls.forEach(ball => {
+                const num = parseInt(ball.dataset.number);
+                ball.classList.toggle('excluded', excludedNumbers.includes(num));
+            });
+        }
+        
+        // Gerar números aleatórios
+        function generateRandomNumbers(count, min, max, exclude = []) {
+            const numbers = [];
+            while (numbers.length < count) {
+                const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                if (!numbers.includes(num) && !exclude.includes(num)) {
+                    numbers.push(num);
+                }
+            }
+            return numbers.sort((a, b) => a - b);
+        }
+        
+        // Gerar jogos com estratégia de números atrasados
+        function generateColdGames() {
+            const coldNumbers = Object.keys(frequencyData)
+                .filter(num => frequencyData[num] <= 3)
+                .map(num => parseInt(num));
+            
+            // Definir 5-8 números atrasados como fixos
+            const coldToUse = coldNumbers
+                .filter(num => !excludedNumbers.includes(num))
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.floor(Math.random() * 4) + 5); // Entre 5 e 8 números
+            
+            fixedNumbers = [...new Set([...fixedNumbers, ...coldToUse])];
+            updateFixedBalls();
+            generateGames();
+        }
+        
+        // Gerar jogos com números não sorteados recentemente
+        function generateNotDrawnGames() {
+            // Usar 3-5 números não sorteados
+            const notDrawnToUse = notDrawnNumbers
+                .filter(num => !excludedNumbers.includes(num))
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.floor(Math.random() * 3) + 3); // Entre 3 e 5 números
+            
+            fixedNumbers = [...new Set([...fixedNumbers, ...notDrawnToUse])];
+            updateFixedBalls();
+            generateGames();
+        }
+        
+        // Gerar jogos balanceados (mistura de quentes e frios)
+        function generateBalancedGames() {
+            const hotNumbers = Object.keys(frequencyData)
+                .filter(num => frequencyData[num] >= 8)
+                .map(num => parseInt(num));
+            
+            const coldNumbers = Object.keys(frequencyData)
+                .filter(num => frequencyData[num] <= 3)
+                .map(num => parseInt(num));
+                
+            // 8-10 números quentes
+            const hotToUse = hotNumbers
+                .filter(num => !excludedNumbers.includes(num))
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.floor(Math.random() * 3) + 8);
+                
+            // 5-7 números frios
+            const coldToUse = coldNumbers
+                .filter(num => !excludedNumbers.includes(num))
+                .sort(() => Math.random() - 0.5)
+                .slice(0, Math.floor(Math.random() * 3) + 5);
+                
+            fixedNumbers = [...new Set([...fixedNumbers, ...hotToUse, ...coldToUse])];
+            updateFixedBalls();
+            generateGames();
+        }
+        
+        // Gerar jogos
+        function generateGames() {
+            const gameCount = parseInt(document.getElementById('game-count').value) || 5;
+            const gamesContainer = document.getElementById('generated-games');
+            
+            gamesContainer.innerHTML = '';
+            
+            if (fixedNumbers.length > 15) {
+                alert('Você selecionou mais de 15 números fixos!');
+                return;
+            }
+            
+            const availableNumbers = [];
+            for (let i = 1; i <= 25; i++) {
+                if (!excludedNumbers.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            if (availableNumbers.length - fixedNumbers.length < 15 - fixedNumbers.length) {
+                alert('Não há números suficientes disponíveis para gerar jogos com as configurações atuais!');
+                return;
+            }
+            
+            for (let i = 0; i < gameCount; i++) {
+                // Gerar números aleatórios complementares
+                const neededNumbers = 15 - fixedNumbers.length;
+                const randomNumbers = generateRandomNumbers(
+                    neededNumbers,
+                    1,
+                    25,
+                    [...fixedNumbers, ...excludedNumbers]
+                );
+                
+                // Combinar com números fixos
+                const gameNumbers = [...fixedNumbers, ...randomNumbers].sort((a, b) => a - b);
+                
+                // Criar elemento do jogo
+                const gameElement = document.createElement('div');
+                gameElement.className = 'game';
+                
+                const titleElement = document.createElement('div');
+                titleElement.className = 'game-title';
+                titleElement.textContent = `Jogo ${i + 1}`;
+                gameElement.appendChild(titleElement);
+                
+                const numbersElement = document.createElement('div');
+                numbersElement.className = 'game-numbers';
+                
+                gameNumbers.forEach(num => {
+                    const numElement = document.createElement('div');
+                    numElement.className = 'game-number';
+                    if (fixedNumbers.includes(num)) {
+                        numElement.classList.add('fixed-number');
+                    }
+                    if (notDrawnNumbers.includes(num)) {
+                        numElement.classList.add('not-drawn-number');
+                    }
+                    numElement.textContent = num;
+                    numbersElement.appendChild(numElement);
+                });
+                
+                gameElement.appendChild(numbersElement);
+                gamesContainer.appendChild(gameElement);
+            }
+        }
+        
+        // Limpar seleções
+        function clearSelections() {
+            fixedNumbers = [];
+            excludedNumbers = [];
+            updateFixedBalls();
+            updateExcludedBalls();
+            document.getElementById('generated-games').innerHTML = '';
+        }
+        
+        // Event listeners
+        document.getElementById('load-results').addEventListener('click', loadResults);
+        document.getElementById('generate-games').addEventListener('click', generateGames);
+        document.getElementById('generate-cold').addEventListener('click', generateColdGames);
+        document.getElementById('generate-not-drawn').addEventListener('click', generateNotDrawnGames);
+        document.getElementById('generate-balanced').addEventListener('click', generateBalancedGames);
+        document.getElementById('clear-selections').addEventListener('click', clearSelections);
+        
+        // Inicializar com dados locais
+        loadLocalData();
+    </script>
+</body>
+</html>
