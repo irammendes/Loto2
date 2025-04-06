@@ -565,8 +565,6 @@
                     listaDezenas: data.listaDezenas.map(Number)
                 };
                 
-                // Simula os últimos 10 concursos (a API oficial só retorna o último)
-                lastDraws = simulateLastDraws(processedData);
                 
                 // Calcula estatísticas
                 calculateStatistics();
@@ -609,10 +607,6 @@
             }
         }
 
-        // Processa os resultados da API
-        function processResults(data) {
-            // Simula 10 concursos (a API real só retorna o último)
-            lastDraws = simulateLastDraws(data);
             
             // Calcula estatísticas
             calculateStatistics();
@@ -622,37 +616,6 @@
             updateStatsTable();
             initializeNumbers();
         }
-
-        // Simula concursos anteriores (para demonstração)
-        function simulateLastDraws(lastDraw) {
-            const draws = [];
-            const baseNumbers = lastDraw.listaDezenas?.map(Number) || 
-                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-            
-            for (let i = 0; i < 10; i++) {
-                draws.push({
-                    numero: (lastDraw.numero || 2500) - i,
-                    data: new Date(Date.now() - i * 3 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-                    dezenas: generateSimilarDraw(baseNumbers)
-                });
-            }
-            return draws;
-        }
-
-        // Gera um sorteio similar
-        function generateSimilarDraw(baseNumbers) {
-            const newDraw = [...baseNumbers];
-            const changes = Math.floor(Math.random() * 3) + 2;
-            
-            for (let i = 0; i < changes; i++) {
-                const index = Math.floor(Math.random() * 15);
-                let newNum;
-                do {
-                    newNum = Math.floor(Math.random() * 25) + 1;
-                } while (newDraw.includes(newNum));
-                
-                newDraw[index] = newNum;
-            }
             
             return newDraw.sort((a, b) => a - b);
         }
