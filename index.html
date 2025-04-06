@@ -425,7 +425,57 @@
                     <label for="use-not-drawn-cycle">Usar ciclo de dezenas não sorteadas</label>
                 </div>
             </div>
-            
+            async function fetchLatestResults() {
+  try {
+    const response = await fetch('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil');
+    const data = await response.json();
+    return {
+      numero: data.numero,
+      data: data.dataApuracao,
+      dezenas: data.listaDezenas.map(Number)
+    };
+  } catch (error) {
+    console.error("Erro ao acessar API:", error);
+    return null;
+  }
+}
+            function analyzeTrends(results, lookback = 50) {
+  const stats = {};
+  // Inicializa estatísticas
+  for (let i = 1; i <= 25; i++) {
+    stats[i] = { frequency: 0, lastDraw: 0, delays: [] };
+  }
+  
+  // Processa os resultados
+  results.slice(0, lookback).forEach((draw, index) => {
+    draw.dezenas.forEach(num => {
+      stats[num].frequency++;
+      stats[num].lastDraw = index;
+      stats[num].delays.push(index - stats[num].lastDraw);
+    });
+  });
+  
+  return stats;
+}
+      function generateOptimizedGame(stats, fixed = [], excluded = []) {
+  const available = [];
+  for (let i = 1; i <= 25; i++) {
+    if (!excluded.includes(i)) {
+      // Peso baseado na frequência e atraso
+      const weight = (stats[i].frequency / 50) * (stats[i].delays.length > 0 ? 
+        Math.max(...stats[i].delays) : 1);
+      available.push({ number: i, weight });
+    }
+  }
+  
+  // Ordena por peso e seleciona os melhores
+  return available
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 15 - fixed.length)
+    .map(item => item.number)
+    .concat(fixed)
+    .sort((a, b) => a - b);
+}
             <div class="game-controls">
                 <div class="control-group">
                     <h3>Números Fixos (Máx. 15)</h3>
