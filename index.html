@@ -552,15 +552,11 @@
                 loadResultsBtn.disabled = true;
                 apiStatus.textContent = 'Conectando à API da Caixa...';
                 
-                // Tentativa direta com API oficial
-                const response = await fetch('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil');
+                // Obtém os últimos 10 concursos
+                const draws = await getLast10Draws();
                 
-                if (!response.ok) throw new Error('Falha na conexão com a API oficial');
-                
-                const data = await response.json();
-                
-                // Processa os dados reais da API
-                processRealData(data);
+                // Processa os dados reais
+                processResults({ lastDraws: draws });
                 
                 // Salva localmente para uso futuro
                 const saveData = {
@@ -578,47 +574,20 @@
                 apiStatus.textContent = 'Dados atualizados em ' + new Date().toLocaleString();
                 
             } catch (error) {
-                console.error('Erro com API oficial:', error);
+                console.error('Erro ao carregar resultados:', error);
+                apiStatus.textContent = 'Erro ao carregar dados. ' + (error.message || '');
                 
-                // Tenta com proxy CORS como fallback
-                try {
-                    apiStatus.textContent = 'Tentando conexão alternativa via proxy...';
-                    const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                    const apiUrl = encodeURIComponent('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil');
-                    const proxyResponse = await fetch(proxyUrl + apiUrl);
-                    
-                    if (!proxyResponse.ok) throw new Error('Erro no proxy CORS');
-                    
-                    const proxyData = await proxyResponse.json();
-                    processRealData(proxyData);
-                    
-                    // Salva localmente
-                    const saveData = {
-                        lastDraws: lastDraws,
-                        frequencyData: frequencyData,
-                        notDrawnNumbers: notDrawnNumbers,
-                        notDrawnLastNumbers: notDrawnLastNumbers,
-                        notDrawnCycleInfo: notDrawnCycleInfo,
-                        numberStats: numberStats,
-                        timestamp: new Date().toISOString()
-                    };
-                    localStorage.setItem('lotofacilData', JSON.stringify(saveData));
-                    
-                    document.getElementById('last-results').style.display = 'block';
-                    apiStatus.textContent = 'Dados atualizados via proxy em ' + new Date().toLocaleString();
-                    
-                } catch (proxyError) {
-                    console.error('Erro com proxy CORS:', proxyError);
-                    apiStatus.textContent = 'Erro ao carregar dados. Usando cache local.';
-                    
-                    // Tenta usar dados salvos
-                    const savedData = localStorage.getItem('lotofacilData');
-                    if (savedData) {
+                // Tenta usar dados salvos
+                const savedData = localStorage.getItem('lotofacilData');
+                if (savedData) {
+                    try {
                         const parsedData = JSON.parse(savedData);
                         processResults(parsedData);
                         document.getElementById('last-results').style.display = 'block';
-                    } else {
-                        apiStatus.textContent = 'Não foi possível carregar os dados. Por favor, tente novamente mais tarde.';
+                        apiStatus.textContent += ' Usando cache local.';
+                    } catch (e) {
+                        console.error("Erro ao carregar dados salvos:", e);
+                        apiStatus.textContent += ' Não foi possível carregar os dados.';
                     }
                 }
             } finally {
@@ -627,44 +596,57 @@
             }
         }
 
-        // Processa os dados reais da API
-        async function processRealData(data) {
-            // Limpa os dados anteriores
-            lastDraws = [];
-            frequencyData = {};
-            numberStats = {};
+        // Obtém os últimos 10 concursos da API da Caixa
+        async function getLast10Draws() {
+            const draws = [];
             
             try {
-                // Obtém os últimos 10 concursos da API
+                // Primeiro obtém o último concurso
                 const response = await fetch('https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil');
                 const latestData = await response.json();
                 
                 // Formata os dados do último concurso
-                const latestDraw = {
+                draws.push({
                     numero: latestData.numero,
-                    data: latestData.dataApuracao,
-                    dezenas: latestData.listaDezenas.map(Number)
-                };
+                    data: formatDate(latestData.dataApuracao),
+                    dezenas: latestData.listaDezenas.map(Number).sort((a, b) => a - b)
+                });
                 
-                lastDraws.push(latestDraw);
-                
-                // Calcula estatísticas
-                calculateStatistics();
-                
-                // Atualiza a interface
-                updateDrawsDisplay();
-                updateStatsTable();
-                initializeNumbers();
-                
+                // Obtém os 9 concursos anteriores
+                for (let i = 1; i < 10; i++) {
+                    const previousNumber = latestData.numero - i;
+                    if (previousNumber <= 0) break;
+                    
+                    try {
+                        const previousResponse = await fetch(`https://servicebus2.caixa.gov.br/portaldeloterias/api/lotofacil/${previousNumber}`);
+                        const previousData = await previousResponse.json();
+                        
+                        draws.push({
+                            numero: previousData.numero,
+                            data: formatDate(previousData.dataApuracao),
+                            dezenas: previousData.listaDezenas.map(Number).sort((a, b) => a - b)
+                        });
+                    } catch (error) {
+                        console.error(`Erro ao obter concurso ${previousNumber}:`, error);
+                        break;
+                    }
+                }
             } catch (error) {
-                console.error('Erro ao processar dados da API:', error);
+                console.error('Erro ao obter últimos concursos:', error);
                 throw error;
             }
+            
+            return draws;
         }
 
-        // Processa os resultados da API
+        // Formata a data para exibição
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Processa os resultados
         function processResults(data) {
-            // Verifica se os dados contêm informações de sorteios
             if (data.lastDraws && data.lastDraws.length > 0) {
                 lastDraws = data.lastDraws;
                 
